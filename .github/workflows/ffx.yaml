@@ -1,0 +1,64 @@
+name: ffx-ci
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  ffx-cpp:
+    name: ffx-cpp
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+          cmake \
+          ninja-build \
+          clang-format \
+          cmake-format \
+          libboost-all-dev \
+          libgtest-dev \
+          libomp-dev \
+          libtbb-dev 
+
+      - name: install python dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install numpy
+          python3 -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+      - name: lint
+        run: make lint-cpp
+
+      - name: configure
+        run: make configure
+
+      - name: build
+        run: make build
+
+      - name: test
+        run: make test-cpp
+
+  ffx-python:
+    name: ffx-python
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: python3 setup
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: install
+        run: make install-python
+
+      - name: lint
+        run: make lint-python
+
+      - name: test
+        run: make test-python

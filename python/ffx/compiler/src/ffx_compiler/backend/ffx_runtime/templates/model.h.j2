@@ -1,0 +1,84 @@
+#pragma once
+
+#include <ffx/ffx.h>
+
+namespace ffx_runtime {
+
+{% if dynamic_batch %}
+  // dynamic batching, can be tuned at compile time
+  constexpr std::size_t kBatchSize = {{ batch_size if batch_size > 0 else 1 }};
+{% endif %}
+  constexpr std::size_t kThreadsPerBlock = 64;
+
+{% if has_bytes_buffer_metadata %}
+  extern "C" {
+    extern const unsigned char _binary_model_data_start[];
+  }
+{% endif %}
+
+  class Model {
+  public:
+    explicit Model(Queue& queue)
+      : {{ initializers | join(',\n        ') }} {
+{% if has_bytes_buffer_metadata %}
+{% for meta in bytes_buffer_metadata %}
+{% for param in meta.data %}
+      {
+        const auto {{ meta.node }}_{{ param.param_name }}_view = alpaka::createView(
+            ffx::host(),
+            reinterpret_cast<const float*>(_binary_model_data_start + {{ param.offset }}),
+            static_cast<Extent>({{ param.size }}));
+        alpaka::memcpy(
+            queue,
+            device_{{ meta.node }}_{{ param.param_name }}_,
+            {{ meta.node }}_{{ param.param_name }}_view);
+      }
+{% endfor %}
+{% endfor %}
+{% endif %}
+    }
+
+    void infer(
+        {{ infer_params | join(',\n        ') }}
+    ) {
+{% for node in nodes %}
+      {
+        // {{ node.name }}
+        constexpr auto blocks_{{ node.var }} = ffx::divide_up_by({{ node.output_n }}, kThreadsPerBlock);
+        const auto     grid_{{ node.var }}   = ffx::make_workdiv<Acc1D>(blocks_{{ node.var }}, kThreadsPerBlock);
+        alpaka::exec<Acc1D>(
+            queue,
+            grid_{{ node.var }},
+            {{ node.var }}_,
+{% for buf in node.input_bufs %}
+            {{ buf }},
+{% endfor %}
+            device_{{ node.var }}_output_.data(){% if node.call_type == "parameterised" %},
+            device_{{ node.var }}_weight_.data(),
+            device_{{ node.var }}_bias_.data(){% endif %}
+        );
+      }
+{% endfor %}
+
+{% for copier in output_copiers %}
+      {{ copier }}
+{% endfor %}
+    }
+
+  private:
+    // kernels
+{% for node in nodes %}
+    {{ node.kernel_type }} {{ node.var }}_{};
+{% endfor %}
+
+    // params & intermediate buffers
+{% for node in nodes %}
+    ffx::device_buffer<Device, float[]> device_{{ node.var }}_output_;
+{% if node.call_type == "parameterised" or node.call_type == "batch_norm" %}
+    ffx::device_buffer<Device, float[]> device_{{ node.var }}_weight_;
+    ffx::device_buffer<Device, float[]> device_{{ node.var }}_bias_;
+{% endif %}
+{% endfor %}
+  };
+
+}  // namespace ffx_runtime

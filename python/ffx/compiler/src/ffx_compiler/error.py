@@ -1,0 +1,2 @@
+class FfxError(Exception):
+    pass

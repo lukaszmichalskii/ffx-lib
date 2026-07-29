@@ -1,0 +1,6 @@
+__version__ = "1.0.0-alpha"
+__title__ = "ffx_compiler"
+__author__ = "Lukasz Michalski"
+__email__ = "lukasz.michalski222@gmail.com, lukasz.michalski@amd.com"
+__copyright__ = f"Copyright (c) 2026 {__author__}. All rights reserved."
+__summary__ = "ffx-codegen: tool for portable c++ inference code synthesis."

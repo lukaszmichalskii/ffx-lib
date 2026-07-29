@@ -1,0 +1,48 @@
+#include <ffx/ffx.h>
+
+#include "model.h"
+
+namespace ffx_runtime {
+
+  int main() {
+    const auto& devices = ffx::devices<Platform>();
+    Queue queue(devices[0]);
+    Model model(queue);
+
+    // Host buffer allocations
+{% for inp in inputs %}
+    auto host_{{ inp.var }} = ffx::make_host_buffer<float[]>({{ inp.size_expr }});
+{% endfor %}
+{% for out in outputs %}
+    auto host_{{ out.var }} = ffx::make_host_buffer<float[]>({{ out.size_expr }});
+{% endfor %}
+
+    // Device buffer allocations
+{% for inp in inputs %}
+    auto device_{{ inp.var }} = ffx::make_device_buffer<float[]>(queue, {{ inp.size_expr }});
+{% endfor %}
+{% for out in outputs %}
+    auto device_{{ out.var }} = ffx::make_device_buffer<float[]>(queue, {{ out.size_expr }});
+{% endfor %}
+
+    // Initialize inputs and copy to device
+{% for inp in inputs %}
+    alpaka::memset(queue, host_{{ inp.var }}, 0x0);
+    alpaka::memcpy(queue, device_{{ inp.var }}, host_{{ inp.var }});
+{% endfor %}
+
+    // Execute model inference with standardized I/O interface
+    model.infer({{ infer_args | join(',\n        ') }});
+
+    // Copy outputs back to host
+{% for out in outputs %}
+    alpaka::memcpy(queue, host_{{ out.var }}, device_{{ out.var }});
+{% endfor %}
+    alpaka::wait(queue);
+
+    return 0;
+  }
+
+}  // namespace ffx_runtime
+
+int main() { return ffx_runtime::main(); }

@@ -1,0 +1,18 @@
+#ifndef FFX__VERSION_H
+#define FFX__VERSION_H
+
+#include <string_view>
+
+namespace ffx::version {
+
+  inline constexpr int kMajor = @PROJECT_VERSION_MAJOR@;
+  inline constexpr int kMinor = @PROJECT_VERSION_MINOR@;
+  inline constexpr int kPatch = @PROJECT_VERSION_PATCH@;
+
+  [[nodiscard]] constexpr std::string_view string() noexcept {
+      return "@PROJECT_VERSION@";
+  }
+
+}  // namespace ffx::version
+
+#endif  // FFX__VERSION_H

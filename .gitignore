@@ -1,0 +1,29 @@
+# IDE
+.idea
+
+# ffx
+build
+cmake-build
+install
+
+# ffx-codegen
+/codegen/
+codegen_test/*.h
+codegen_test/*.cc
+codegen_test/*.data
+execution.log
+models
+
+# python
+venv
+**/__pycache__/
+*.pyc
+*.whl
+*.egg-info
+
+# models
+*.onnx
+*.onnx.data
+
+# notebooks
+*.ipynb_checkpoints

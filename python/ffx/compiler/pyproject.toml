@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ffx_compiler"
+version = "1.0.0-alpha"
+description = "ffx-compiler: ahead-of-time (AOT) graph lowering, IR and c++ code synthesis tool."
+authors = [{ name = "Lukasz Michalski", email = "lukasz.michalski222@gmail.com" }]
+requires-python = ">=3.12"
+readme = "README.md"
+dependencies = [
+    "onnx>=1.22.0",
+    "Jinja2>=3.1.6",
+]
+
+[project.optional-dependencies]
+development = [
+    "ruff==0.15.21",
+    "pytest==9.1.1",
+]
+
+[tool.setuptools.package-data]
+"ffx_compiler.backend.ffx_runtime" = ["templates/*.j2"]
+
+[project.scripts]
+ffx-compiler = "ffx_compiler.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 88
+indent-width = 4
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["ffx_compiler"]
