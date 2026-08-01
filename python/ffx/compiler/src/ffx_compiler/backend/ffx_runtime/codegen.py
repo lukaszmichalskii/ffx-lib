@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Tuple
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
-# Explicitly import operator emitters to register handlers in FfxOpsRegistry
+# explicitly import codegen_ops to trigger @register decorators
 import ffx_compiler.backend.ffx_runtime.codegen_ops  # noqa: F401
 from ffx_compiler.backend.codegen import Codegen
 from ffx_compiler.backend.ffx_runtime.codegen_registry import FfxOpsRegistry
@@ -97,6 +97,14 @@ def format_output_copiers(outputs: List[IONodeContext]) -> List[str]:
     ]
 
 
+def format_bytes(size: int) -> str:
+    for unit in ["B", "KB", "MB"]:
+        if abs(size) < 1024:
+            return f"{size:.2f} {unit}" if unit != "B" else f"{size} B"
+        size /= 1024
+    return f"{size:.2f} GB"
+
+
 class FfxRuntimeCodegen(Codegen):
     _TEMPLATE_MODEL_HEADER = "model.h.j2"
     _TEMPLATE_MAIN_SOURCE = "main.cc.j2"
@@ -134,9 +142,9 @@ class FfxRuntimeCodegen(Codegen):
         }
 
         logger.info(
-            "Successfully generated C++ source code for '%s' (%d bytes weights)",
+            "Successfully generated C++ source code for '%s' (%s bytes weights)",
             graph.name,
-            len(bytes_buffer),
+            format_bytes(len(bytes_buffer)),
         )
 
         return sources, bytes_buffer

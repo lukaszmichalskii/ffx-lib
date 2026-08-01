@@ -2,6 +2,8 @@ import logging
 import math
 from typing import List, Set, Tuple
 
+# explicitly import kernel_fusion to trigger @register decorators
+import ffx_compiler.middle_end.ffx_runtime.kernel_fusion  # noqa: F401
 from ffx_compiler.ir import ActivationOp, Graph, Node
 from ffx_compiler.middle_end.ffx_runtime.kernel_fusion_registry import (
     KernelFusionRegistry,
@@ -134,7 +136,7 @@ def shape_folding(graph: Graph) -> Graph:
         else:
             node.folded_shape = tuple(shape)
 
-    logger.debug("Shape folding complete: folded %d node shapes", modified_count)
+    logger.info("Shape folding complete: folded %d node shapes", modified_count)
     return graph
 
 

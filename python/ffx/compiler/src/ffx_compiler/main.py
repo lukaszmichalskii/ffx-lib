@@ -92,6 +92,7 @@ def main(argv: List[str]) -> int:
             level=args.O,
             runtime=args.runtime,
             override=args.force,
+            verbose=args.verbose,
         )
         return compiler.compile()
     except FfxError as error:

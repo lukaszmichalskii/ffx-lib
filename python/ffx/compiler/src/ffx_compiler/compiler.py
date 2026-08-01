@@ -4,8 +4,7 @@ from pathlib import Path
 
 from ffx_compiler.backend import Codegen, codegen_factory
 from ffx_compiler.error import FfxError
-from ffx_compiler.frontend import Parser
-from ffx_compiler.frontend.parser_factory import parser_factory
+from ffx_compiler.frontend import Parser, format_ir, parser_factory
 from ffx_compiler.middle_end import Optimizer, optimizer_factory
 
 logger = logging.getLogger(__name__)
@@ -19,9 +18,12 @@ class Compiler:
         level: int = 0,
         runtime: str = "ffx_runtime",
         override: bool = False,
+        verbose: bool = False,
     ):
         self.model_path = model_path
         self.output_path = output_path
+
+        self.verbose = verbose
 
         if not self.model_path.exists():
             raise FfxError(f"Model file not found at path: {self.model_path}")
@@ -41,8 +43,10 @@ class Compiler:
         logger.debug(
             f"Parsed IR graph '{graph_ir.name}' with {len(graph_ir.nodes)} nodes."
         )
-        for node in graph_ir.nodes:
-            print(node.type)
+        if self.verbose:
+            graph_ir_str = format_ir.model_summary(graph_ir)
+            if graph_ir_str:
+                logger.debug(f"Graph IR:\n{graph_ir_str}")
 
         # optimization pass
         graph_ir_optimized = self.middle_end.optimize_intermediate_representation(
