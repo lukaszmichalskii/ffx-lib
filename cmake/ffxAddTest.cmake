@@ -1,6 +1,4 @@
-set(BIN_DEPS_DIR "${GLOBAL_BIN_DIR}")
-
-function(addFfxTest SOURCE_FILE BACKEND)
+function(ffx_add_test SOURCE_FILE BACKEND)
   get_filename_component(TEST_NAME ${SOURCE_FILE} NAME_WE)
   string(TOLOWER "${BACKEND}" BACKEND_LOWER)
   set(TARGET_NAME "${TEST_NAME}_${BACKEND_LOWER}")
@@ -8,6 +6,10 @@ function(addFfxTest SOURCE_FILE BACKEND)
   add_executable(${TARGET_NAME} ${SOURCE_FILE})
 
   target_link_libraries(${TARGET_NAME} PRIVATE ffx::ffx GTest::gtest_main)
+
+  if(ARG_LINK_LIBRARIES)
+    target_link_libraries(${TARGET_NAME} PRIVATE ${ARG_LINK_LIBRARIES})
+  endif()
 
   if(BACKEND_LOWER STREQUAL "serial")
     target_compile_definitions(

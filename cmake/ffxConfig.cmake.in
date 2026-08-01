@@ -22,6 +22,7 @@ if(NOT alpaka_FOUND)
   FetchContent_MakeAvailable(alpaka)
 endif()
 
+include("${CMAKE_CURRENT_LIST_DIR}/ffxAddExecutable.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/ffxTargets.cmake")
 
 check_required_components(ffx)

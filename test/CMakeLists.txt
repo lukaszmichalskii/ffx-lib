@@ -1,5 +1,5 @@
 include(CheckLanguage)
-include(cmake/addFfxTest.cmake)
+include(ffxAddTest)
 
 find_package(GTest REQUIRED)
 find_package(OpenMP)

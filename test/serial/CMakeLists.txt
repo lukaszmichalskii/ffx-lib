@@ -1,3 +1,3 @@
 foreach(SOURCE_FILE ${SOURCE_FILES})
-  addffxtest(${SOURCE_FILE} "serial")
+  ffx_add_test(${SOURCE_FILE} "serial")
 endforeach()

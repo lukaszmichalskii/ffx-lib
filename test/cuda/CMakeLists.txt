@@ -10,5 +10,5 @@ if(NOT DEFINED CMAKE_CUDA_STANDARD)
 endif()
 
 foreach(SOURCE_FILE ${SOURCE_FILES})
-  addffxtest(${SOURCE_FILE} "cuda")
+  ffx_add_test(${SOURCE_FILE} "cuda")
 endforeach()

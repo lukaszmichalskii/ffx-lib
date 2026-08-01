@@ -5,11 +5,13 @@
 namespace ffx_runtime {
 
   int main() {
+    ffx::framework::get_environment_info<Platform>();
+
     const auto& devices = ffx::devices<Platform>();
     Queue queue(devices[0]);
     Model model(queue);
 
-    // Host buffer allocations
+    // host buffer allocations
 {% for inp in inputs %}
     auto host_{{ inp.var }} = ffx::make_host_buffer<float[]>({{ inp.size_expr }});
 {% endfor %}
@@ -17,7 +19,7 @@ namespace ffx_runtime {
     auto host_{{ out.var }} = ffx::make_host_buffer<float[]>({{ out.size_expr }});
 {% endfor %}
 
-    // Device buffer allocations
+    // device buffer allocations
 {% for inp in inputs %}
     auto device_{{ inp.var }} = ffx::make_device_buffer<float[]>(queue, {{ inp.size_expr }});
 {% endfor %}
@@ -25,20 +27,31 @@ namespace ffx_runtime {
     auto device_{{ out.var }} = ffx::make_device_buffer<float[]>(queue, {{ out.size_expr }});
 {% endfor %}
 
-    // Initialize inputs and copy to device
+    // initialize inputs and copy to device
 {% for inp in inputs %}
-    alpaka::memset(queue, host_{{ inp.var }}, 0x0);
+    for (std::size_t index = 0; index < host_{{ inp.var }}.size(); index++) {
+      host_{{ inp.var }}[index] = 1.0f;
+    }
     alpaka::memcpy(queue, device_{{ inp.var }}, host_{{ inp.var }});
 {% endfor %}
 
-    // Execute model inference with standardized I/O interface
+    // execute model inference with standardized I/O interface
     model.infer({{ infer_args | join(',\n        ') }});
 
-    // Copy outputs back to host
+    // copy outputs back to host
 {% for out in outputs %}
     alpaka::memcpy(queue, host_{{ out.var }}, device_{{ out.var }});
 {% endfor %}
+
+    // synchronize scheduled workload
     alpaka::wait(queue);
+
+{% for out in outputs %}
+    for (std::size_t index = 0; index < host_{{ out.var }}.size(); index++) {
+      std::print("{:.4f} ", host_{{ out.var }}[index]);
+    }
+    std::println();
+{% endfor %}
 
     return 0;
   }

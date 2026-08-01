@@ -3,7 +3,6 @@
 
 # ffx
 build
-cmake-build
 install
 
 # ffx-codegen

@@ -30,15 +30,6 @@ install: install-cpp install-python
 test-cpp:
 	@ctest --test-dir $(BUILD_DIR) --output-on-failure
 
-test-nn: build
-	@ctest --test-dir $(BUILD_DIR) -L "nn" --output-on-failure
-
-test-algorithm: build
-	@ctest --test-dir $(BUILD_DIR) -L "algorithm" --output-on-failure
-
-test-framework: build
-	@ctest --test-dir $(BUILD_DIR) -L "framework" --output-on-failure
-
 test-python:
 	@python3 -m pytest $(PYTHON_DIR) --no-header -v
 

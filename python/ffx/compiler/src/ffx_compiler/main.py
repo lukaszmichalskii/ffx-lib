@@ -1,9 +1,7 @@
 import argparse
 import logging
-import os
 import sys
 from pathlib import Path
-from typing import List
 
 import ffx_compiler
 from ffx_compiler.compiler import Compiler
@@ -18,9 +16,9 @@ if sys.version_info[:2] < (3, 12):
 logger = logging.getLogger("ffx_compiler.main")
 
 
-def parse_args(argv: List[str]) -> argparse.Namespace:
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        prog=os.path.basename(argv[0]),
+        prog="ffx-compiler",
         description=ffx_compiler.__summary__,
         # epilog=epilog(),
         formatter_class=argparse.RawTextHelpFormatter,
@@ -62,14 +60,6 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
         help="Runtime framework to emit compatible inference code",
     )
     parser.add_argument(
-        "--target",
-        type=str,
-        nargs="+",
-        choices=["serial", "cuda", "hip", "omp2", "tbb"],
-        default=["serial", "cuda", "hip", "omp2", "tbb"],
-        help="One or more hardware execution targets to synthesise code for, default all supported accelerators",
-    )
-    parser.add_argument(
         "--force",
         action="store_true",
         help="Force overwrite content of previous compilation.",
@@ -81,8 +71,8 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
     return parser.parse_args()
 
 
-def main(argv: List[str]) -> int:
-    args = parse_args(argv)
+def main() -> int:
+    args = parse_args()
     setup_logging(verbose=args.verbose)
 
     try:
@@ -101,4 +91,4 @@ def main(argv: List[str]) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv))
+    sys.exit(main())
