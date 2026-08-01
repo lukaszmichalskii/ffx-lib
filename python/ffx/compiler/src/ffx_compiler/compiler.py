@@ -41,6 +41,8 @@ class Compiler:
         logger.debug(
             f"Parsed IR graph '{graph_ir.name}' with {len(graph_ir.nodes)} nodes."
         )
+        for node in graph_ir.nodes:
+            print(node.type)
 
         # optimization pass
         graph_ir_optimized = self.middle_end.optimize_intermediate_representation(

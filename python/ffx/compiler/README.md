@@ -1,0 +1,3 @@
+<h3><b>ffx-compiler</b></h3>
+
+`ffx-compiler` provides a unified ahead-of-time (AOT) graph lowering, IR, and C++ code synthesis tool. It consumes high-level machine learning model topologies (such as ONNX IR), extracts an internal, hardware-agnostic Intermediate Representation (IR), and directly synthesizes portable, zero-overhead C++ source code optimized for parallel execution backends using the [alpaka](https://github.com/alpaka-group/alpaka) library.

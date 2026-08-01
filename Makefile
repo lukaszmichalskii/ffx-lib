@@ -1,7 +1,9 @@
 MAKEFLAGS += --no-print-directory
 
-BUILD_DIR ?= cmake-build
+BUILD_DIR ?= build
 BUILD_TYPE ?= Release
+INSTALL_DIR ?= install
+
 FFX_BUILD_TESTING ?= ON
 
 PYTHON_DIR = python/ffx
@@ -9,7 +11,7 @@ PYTHON_DIR = python/ffx
 .PHONY: all configure build install install-cpp install-python test test-cpp test-python lint lint-cpp lint-python format format-cpp format-python
 
 $(BUILD_DIR)/CMakeCache.txt:
-	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DCMAKE_INSTALL_PREFIX=install -DFFX_BUILD_TESTING=$(FFX_BUILD_TESTING)
+	@cmake -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DCMAKE_INSTALL_PREFIX=$(INSTALL_DIR) -DFFX_BUILD_TESTING=$(FFX_BUILD_TESTING)
 
 configure: $(BUILD_DIR)/CMakeCache.txt
 

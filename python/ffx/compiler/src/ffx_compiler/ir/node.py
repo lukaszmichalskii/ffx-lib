@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 from ffx_compiler.ir.ops import Op
 
@@ -12,7 +12,8 @@ class Node:
     shape: Tuple[int, ...] = None
     type: str = "unknown"
     dtype: str = "float32"
-    folded_size: Optional[int] = None
+    # O1
+    folded_shape: Tuple[int, ...] = None
 
     def __post_init__(self):
         self.type = type(self.op).__name__

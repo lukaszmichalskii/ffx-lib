@@ -2,10 +2,15 @@ cmake_minimum_required(VERSION 3.25.2)
 project(ffx VERSION 1.0.0 LANGUAGES CXX)
 
 option(FFX_BUILD_TESTING "Build the ffx unit tests" ON)
+option(FFX_BUILD_CODEGEN_TESTING "Build the ffx codegen for testing emitted code" OFF)
 
 option(FFX_ALGORITHM_ENABLED "Build the ffx::algorithm extension" ON)
 option(FFX_FRAMEWORK_ENABLED "Build the ffx::framework extension" ON)
 option(FFX_NN_ENABLED "Build the ffx::nn extension" ON)
+
+if (NOT FFX_NN_ENABLED)
+    set(FFX_BUILD_CODEGEN_TESTING OFF)
+endif ()
 
 include(FetchContent)
 include(GNUInstallDirs)
@@ -70,8 +75,11 @@ endif()
 if(FFX_BUILD_TESTING)
     enable_testing()
     add_subdirectory(test)
-    add_subdirectory(codegen_test)
 endif()
+
+if(FFX_BUILD_CODEGEN_TESTING AND FFX_NN_ENABLED)
+    add_subdirectory(codegen_test)
+endif ()
 
 include(CMakePackageConfigHelpers)
 

@@ -1,5 +1,6 @@
 import logging
 
+import ffx_compiler.middle_end.ffx_runtime.opt  # noqa: F401
 from ffx_compiler.ir import Graph
 from ffx_compiler.middle_end.ffx_runtime.opt_registry import get_sorted_passes
 from ffx_compiler.middle_end.optimizer import Optimizer
@@ -17,8 +18,6 @@ class FfxRuntimeOptimizer(Optimizer):
             return graph
 
         logger.info(f"Running optimization pass pipeline at -O{self.level}.")
-        logger.warning("-O1, -O2, -O3 optimization levels not yet supported.")
-
         pipeline = get_sorted_passes(self.level)
         graph_opt = graph
         for pass_name, pass_fn in pipeline:

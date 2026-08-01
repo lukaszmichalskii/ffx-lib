@@ -89,17 +89,20 @@ class SymbolLookupTable:
         return f"device_{cpp_var}_output_.data()"
 
     def get_size_expression(self, node: Node) -> str:
-        if node.folded_size is not None:
-            if self.batch_size > 0:
-                # static batch size, direct literal expression
-                return f"{self.batch_size} * {node.folded_size}"
-            # dynamic batch size, use configurable variable kBatchSize
-            return f"kBatchSize * {node.folded_size}"
+        shape = node.folded_shape if node.folded_shape else node.shape
 
-        spatial = get_shape_expression(node.shape)
-        if self.batch_size > 0:
-            return f"{self.batch_size} * {spatial}"
-        return f"kBatchSize * {spatial}"
+        # scalar
+        if not shape:
+            return "1"
+
+        dims = list()
+        for dim in shape:
+            if dim == -1:  # dynamic
+                dims.append("kBatchSize")
+            else:  # static
+                dims.append(str(dim))
+
+        return " * ".join(dims)
 
     def get_batch_expr(self) -> str:
         return "kBatchSize" if self.batch_size <= 0 else str(self.batch_size)

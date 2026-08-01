@@ -290,6 +290,11 @@ class FusedLinearActivation(Linear):
     activation: ActivationOp = field(default_factory=Identity)
 
 
+@dataclass
+class FusedBatchNorm2dActivation(BatchNorm2d):
+    activation: ActivationOp = field(default_factory=Identity)
+
+
 # =============================================================================
 # Non-Linear Activations Operations
 # =============================================================================
@@ -348,4 +353,5 @@ __all__ = [
     # Fused
     "FusedConv2dActivation",
     "FusedLinearActivation",
+    "FusedBatchNorm2dActivation",
 ]

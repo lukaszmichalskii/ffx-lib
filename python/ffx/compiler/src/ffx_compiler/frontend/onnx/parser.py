@@ -21,7 +21,9 @@ class OnnxParser(Parser):
             if inp.name in context.initializers:
                 continue
             shape, dtype = context.tensor_meta.get(inp.name, ((), "unknown"))
-            node_ir = Node(name=inp.name, op=Input(index), shape=shape, dtype=dtype)
+            node_ir = Node(
+                name=inp.name.lower(), op=Input(index), shape=shape, dtype=dtype
+            )
             context.value_map[inp.name] = inp.name
             nodes_ir.append(node_ir)
         return nodes_ir
@@ -33,7 +35,7 @@ class OnnxParser(Parser):
             shape, dtype = context.tensor_meta.get(out.name, ((), "unknown"))
             parent = context.resolve_input_name(out.name)
             node_ir = Node(
-                name=out.name,
+                name=out.name.lower(),
                 op=Output(index),
                 inputs=[parent],
                 shape=shape,
@@ -47,6 +49,7 @@ class OnnxParser(Parser):
         for node in context.graph.node:
             output_name = node.output[0] if node.output else f"{node.name}_out"
             node_name = node.name or output_name
+            node_name = node_name.lower()
 
             operator_create_fn = OnnxOpsRegistry.get(node.op_type)
             if not operator_create_fn:
@@ -68,7 +71,7 @@ class OnnxParser(Parser):
             ]
             shape, dtype = context.tensor_meta.get(output_name, ((), "unknown"))
 
-            node_ir = Node(name=node_name, op=operator_instance)
+            node_ir = Node(name=node_name.lower(), op=operator_instance)
             node_ir.inputs = inputs
             node_ir.shape = shape
             node_ir.dtype = dtype

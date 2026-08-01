@@ -11,6 +11,7 @@ from ffx_compiler.ir import (
     BatchNorm2d,
     Conv2d,
     Div,
+    FusedBatchNorm2dActivation,
     FusedConv2dActivation,
     FusedLinearActivation,
     Hardswish,
@@ -289,4 +290,25 @@ def fused_linear(op: Any, batch_expr: str, size_expr: str) -> Dict[str, Any]:
         "call": "parameterised",
         "weight_size": str(op.out_features * op.in_features),
         "bias_size": str(op.out_features),
+    }
+
+
+@FfxOpsRegistry.register(FusedBatchNorm2dActivation)
+def fused_batch_norm2d(op: Any, batch_expr: str, size_expr: str) -> Dict[str, Any]:
+    act = op.activation
+    base = f"{batch_expr}, {op.num_features}, {op.eps}"
+
+    if isinstance(act, LeakyReLU):
+        nom, den = to_fraction(act.negative_slope)
+        kernel_type = f"ffx::nn::BatchNorm2dLeakyReLU<{base}, {nom}, {den}>"
+    else:
+        kernel_type = f"ffx::nn::BatchNorm2d{type(act).__name__}<{base}>"
+
+    return {
+        "kernel_type": kernel_type,
+        "call": "parameterised",
+        "weight_size": str(op.num_features),  # gamma
+        "bias_size": str(op.num_features),  # beta
+        "running_mean_size": str(op.num_features),
+        "running_var_size": str(op.num_features),
     }

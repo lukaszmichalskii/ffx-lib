@@ -11,6 +11,7 @@ from ffx_compiler.ir.ops import (
     Conv2d,
     Div,
     Flatten,
+    FusedBatchNorm2dActivation,
     FusedConv2dActivation,
     FusedLinearActivation,
     Hardswish,
@@ -74,4 +75,5 @@ __all__ = [
     "AdaptiveAvgPool2d",
     "FusedConv2dActivation",
     "FusedLinearActivation",
+    "FusedBatchNorm2dActivation",
 ]
