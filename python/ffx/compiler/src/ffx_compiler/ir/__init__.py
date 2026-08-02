@@ -14,6 +14,7 @@ from ffx_compiler.ir.ops import (
     FusedBatchNorm2dActivation,
     FusedConv2dActivation,
     FusedLinearActivation,
+    FusedAddActivation,
     Hardswish,
     Identity,
     Input,
@@ -76,4 +77,5 @@ __all__ = [
     "FusedConv2dActivation",
     "FusedLinearActivation",
     "FusedBatchNorm2dActivation",
+    "FusedAddActivation",
 ]

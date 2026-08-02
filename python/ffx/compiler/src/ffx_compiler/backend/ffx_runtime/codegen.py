@@ -21,6 +21,7 @@ class IONodeContext:
     index: int
     var: str
     size_expr: str
+    dtype: str = "float"
     internal_parent_var: str = ""
 
 
@@ -32,6 +33,7 @@ class ComputeNodeContext:
     output_n: str
     kernel_type: str
     call_type: str
+    dtype: str = "float"
     weight_size: str = ""
     bias_size: str = ""
 
@@ -73,9 +75,9 @@ def format_infer_params(
 ) -> List[str]:
     params: List[str] = ["Queue &queue"]
     for inp in inputs:
-        params.append(f"const ffx::device_buffer<Device, float[]>& device_{inp.var}")
+        params.append(f"const ffx::device_buffer<Device, {inp.dtype}[]>& device_{inp.var}")
     for out in outputs:
-        params.append(f"ffx::device_buffer<Device, float[]>& device_{out.var}")
+        params.append(f"ffx::device_buffer<Device, {out.dtype}[]>& device_{out.var}")
     return params
 
 
@@ -168,6 +170,7 @@ class FfxRuntimeCodegen(Codegen):
                 index=node.op.index,
                 var=f"input_{node.op.index}",
                 size_expr=symbols.get_size_expression(node),
+                dtype=node.dtype
             )
             for node in input_nodes
         ]
@@ -177,6 +180,7 @@ class FfxRuntimeCodegen(Codegen):
                 index=node.op.index,
                 var=f"output_{node.op.index}",
                 size_expr=symbols.get_size_expression(node),
+                dtype=node.dtype,
                 internal_parent_var=symbols.get_cpp_var(
                     node.inputs[0] if node.inputs else node.name
                 ),
@@ -198,14 +202,14 @@ class FfxRuntimeCodegen(Codegen):
             nodes_ctx.append(node_ctx)
 
             initializers.append(
-                f"device_{node_ctx.var}_output_(ffx::make_device_buffer<float[]>(queue, {node_ctx.output_n}))"
+                f"device_{node_ctx.var}_output_(ffx::make_device_buffer<{node_ctx.dtype}[]>(queue, {node_ctx.output_n}))"
             )
             if node_ctx.call_type in ("parameterised", "batch_norm"):
                 initializers.append(
-                    f"device_{node_ctx.var}_weight_(ffx::make_device_buffer<float[]>(queue, {node_ctx.weight_size}))"
+                    f"device_{node_ctx.var}_weight_(ffx::make_device_buffer<{node_ctx.dtype}[]>(queue, {node_ctx.weight_size}))"
                 )
                 initializers.append(
-                    f"device_{node_ctx.var}_bias_(ffx::make_device_buffer<float[]>(queue, {node_ctx.bias_size}))"
+                    f"device_{node_ctx.var}_bias_(ffx::make_device_buffer<{node_ctx.dtype}[]>(queue, {node_ctx.bias_size}))"
                 )
 
         infer_params = format_infer_params(inputs_ctx, outputs_ctx)
@@ -250,6 +254,7 @@ class FfxRuntimeCodegen(Codegen):
             output_n=size_expr,
             kernel_type=op_ctx["kernel_type"],
             call_type=op_ctx.get("call", "element_wise"),
+            dtype=node.dtype,
             weight_size=op_ctx.get("weight_size", ""),
             bias_size=op_ctx.get("bias_size", ""),
         )

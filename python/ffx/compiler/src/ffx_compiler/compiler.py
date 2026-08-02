@@ -52,6 +52,10 @@ class Compiler:
         graph_ir_optimized = self.middle_end.optimize_intermediate_representation(
             graph_ir
         )
+        if self.verbose and self.middle_end.level > 0:
+            graph_ir_opt_str = format_ir.model_summary(graph_ir_optimized)
+            if graph_ir_opt_str:
+                logger.debug(f"-O{self.middle_end.level} Graph IR:\n{graph_ir_opt_str}")
 
         # cpp source and binary payload synthesis
         model_source, model_data = (

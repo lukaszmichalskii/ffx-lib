@@ -26,7 +26,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
 
-    model = models.vgg11_bn()
+    model = models.resnet18()
     model.eval()
 
     in_tensor = torch.ones(1, 3, 224, 224)
@@ -48,6 +48,7 @@ def main() -> int:
         "opset_version": 25,
         "input_names": ["input"],
         "output_names": ["output"],
+        "external_data": False,
     }
 
     if args.dynamic_shapes:

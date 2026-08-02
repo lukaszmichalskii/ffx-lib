@@ -1,6 +1,7 @@
 import re
 from typing import Dict, List, Set, Tuple
 
+import numpy as np
 from typing_extensions import Self
 
 from ffx_compiler.ir import Graph, Input, IOOp, Node, TransformOp
