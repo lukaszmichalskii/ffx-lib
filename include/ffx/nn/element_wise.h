@@ -15,7 +15,7 @@ namespace ffx::nn {
     }
   }
 
-  template <std::size_t Size, typename TOperator>
+  template <std::size_t Size, typename... TOperators>
   struct ElementWise {
     template <concepts::accelerator TAcc, typename... TArgs>
     ALPAKA_FN_ACC auto operator()(const TAcc& acc, TArgs... args) const -> void {
@@ -23,11 +23,19 @@ namespace ffx::nn {
       auto args_tuple = std::forward_as_tuple(args...);
       auto* output = std::get<num_args - 1>(args_tuple);
 
+      using TupleOps = std::tuple<TOperators...>;
+      using FirstOp = std::tuple_element_t<0, TupleOps>;
+
       for (const auto thread_idx : alpaka::uniformElements(acc, Size)) {
-        // helper lambda to index individual input buffer
-        output[thread_idx] = [&]<std::size_t... Indices>(std::index_sequence<Indices...>) {
-          return TOperator::forward(acc, consteval_operand(std::get<Indices>(args_tuple), thread_idx)...);
+        auto accum = [&]<std::size_t... Indices>(std::index_sequence<Indices...>) {
+          return FirstOp::forward(acc, consteval_operand(std::get<Indices>(args_tuple), thread_idx)...);
         }(std::make_index_sequence<num_args - 1>{});
+
+        [&]<std::size_t... Indices>(std::index_sequence<Indices...>) {
+          ((accum = std::tuple_element_t<Indices + 1, TupleOps>::forward(acc, accum)), ...);
+        }(std::make_index_sequence<sizeof...(TOperators) - 1>{});
+
+        output[thread_idx] = accum;
       }
     }
   };

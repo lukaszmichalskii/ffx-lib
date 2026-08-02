@@ -27,14 +27,14 @@ namespace ffx::nn {
             std::size_t PaddingHeight = 0,
             std::size_t PaddingWidth = 0,
             bool Bias = true,
-            typename TOperator = functional::Identity>
+            typename... TOperators>
   struct Conv2dImpl {
     static constexpr std::size_t OutHeight = (InHeight + 2 * PaddingHeight - KernelHeight) / StrideHeight + 1;
     static constexpr std::size_t OutWidth = (InWidth + 2 * PaddingWidth - KernelWidth) / StrideWidth + 1;
     static constexpr std::size_t NumberOfElements = BatchSize * OutChannels * OutHeight * OutWidth;
 
-    template <concepts::accelerator TAcc, typename T>
-    ALPAKA_FN_ACC void operator()(const TAcc& acc, const T* input, T* output, const T* weights, const T* bias) const {
+    template <concepts::accelerator TAcc, typename T, typename... TPtrs>
+    ALPAKA_FN_ACC void operator()(const TAcc& acc, const T* input, T* output, const T* weights, const T* bias, TPtrs... ptrs) const {
       for (const auto thread_index : alpaka::uniformElements(acc, NumberOfElements)) {
         const auto w_out_idx = thread_index % OutWidth;
         auto residual = thread_index / OutWidth;
@@ -70,7 +70,23 @@ namespace ffx::nn {
             }
           }
         }
-        output[thread_index] = TOperator::forward(acc, accum);
+
+        if constexpr (sizeof...(TOperators) == 0) {
+          output[thread_index] = functional::Identity::forward(acc, accum);
+        } else {
+          auto apply_op = [&]<typename TOp>() {
+            if constexpr (requires { TOp::forward(acc, accum, ptrs[thread_index]...); }) {
+              // binary / residual ops
+              accum = TOp::forward(acc, accum, ptrs[thread_index]...);
+            } else {
+              // unary ops
+              accum = TOp::forward(acc, accum);
+            }
+          };
+
+          (apply_op.template operator()<TOperators>(), ...);
+          output[thread_index] = accum;
+        }
       }
     }
   };
@@ -318,5 +334,22 @@ namespace ffx::nn {
                                      PaddingWidth,
                                      Bias,
                                      functional::Hardswish>;
+
+  template <std::size_t BatchSize, std::size_t InHeight, std::size_t InWidth, std::size_t InChannels, std::size_t OutChannels,
+            std::size_t KernelHeight, std::size_t KernelWidth, std::size_t StrideHeight = 1, std::size_t StrideWidth = 1,
+            std::size_t PaddingHeight = 0, std::size_t PaddingWidth = 0, bool Bias = true>
+  using Conv2dAddReLU = Conv2dImpl<BatchSize, InHeight, InWidth, InChannels, OutChannels, KernelHeight, KernelWidth,
+                                   StrideHeight, StrideWidth, PaddingHeight, PaddingWidth, Bias,
+                                   functional::Add,
+                                   functional::ReLU>;
+
+  // Conv2d -> ReLU -> Add Residual
+  template <std::size_t BatchSize, std::size_t InHeight, std::size_t InWidth, std::size_t InChannels, std::size_t OutChannels,
+            std::size_t KernelHeight, std::size_t KernelWidth, std::size_t StrideHeight = 1, std::size_t StrideWidth = 1,
+            std::size_t PaddingHeight = 0, std::size_t PaddingWidth = 0, bool Bias = true>
+  using Conv2dReLUAdd = Conv2dImpl<BatchSize, InHeight, InWidth, InChannels, OutChannels, KernelHeight, KernelWidth,
+                                   StrideHeight, StrideWidth, PaddingHeight, PaddingWidth, Bias,
+                                   functional::ReLU,
+                                   functional::Add>;
 
 }  // namespace ffx::nn
