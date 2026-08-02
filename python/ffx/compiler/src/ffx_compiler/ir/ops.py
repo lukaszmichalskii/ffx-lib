@@ -12,7 +12,9 @@ import numpy as np
 class Op(ABC):
     """Abstract root for all IR operations."""
 
-    pass
+    @property
+    def name(self) -> str:
+        return self.__class__.__name__
 
 
 @dataclass
@@ -281,18 +283,39 @@ class AdaptiveAvgPool2d(NnOp):
 
 
 @dataclass
+class FusedAddActivation(Add):
+    activation: ActivationOp = field(default_factory=Identity)
+
+    @property
+    def name(self) -> str:
+        return f"Add{self.activation.name}"
+
+
+@dataclass
 class FusedConv2dActivation(Conv2d):
     activation: ActivationOp = field(default_factory=Identity)
+
+    @property
+    def name(self) -> str:
+        return f"Conv2d{self.activation.name}"
 
 
 @dataclass
 class FusedLinearActivation(Linear):
     activation: ActivationOp = field(default_factory=Identity)
 
+    @property
+    def name(self) -> str:
+        return f"Linear{self.activation.name}"
+
 
 @dataclass
 class FusedBatchNorm2dActivation(BatchNorm2d):
     activation: ActivationOp = field(default_factory=Identity)
+
+    @property
+    def name(self) -> str:
+        return f"BatchNorm2d{self.activation.name}"
 
 
 # =============================================================================
@@ -354,4 +377,5 @@ __all__ = [
     "FusedConv2dActivation",
     "FusedLinearActivation",
     "FusedBatchNorm2dActivation",
+    "FusedAddActivation",
 ]

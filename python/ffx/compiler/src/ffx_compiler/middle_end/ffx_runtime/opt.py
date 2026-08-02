@@ -67,36 +67,55 @@ def kernel_fusion(graph: Graph) -> Graph:
         if not isinstance(consumer.op, ActivationOp):
             continue
 
-        producer_op_type = type(producer.op)
-        fusion_fn = KernelFusionRegistry.get(producer_op_type)
-
+        fusion_fn = KernelFusionRegistry.get(type(producer.op))
         if fusion_fn is None:
-            logger.debug(
-                "No fusion fn registered for producer op '%s'", producer_op_type
-            )
+            logger.debug("No fusion fn registered for producer op '%s'", producer.type)
             continue
 
         fused_op = fusion_fn(producer.op, consumer.op)
         logger.debug(
             "Fused '%s' (%s) into '%s' (%s) -> %s",
             consumer.name,
-            type(consumer.op).__name__,
+            consumer.type,
             producer.name,
             producer.type,
-            f"{producer.type}{type(consumer.op).__name__}",
+            f"{producer.type}{consumer.type}",
+        )
+
+        old_producer_name = producer.name
+        consumer_suffix = consumer.op.name.lower()
+        new_producer_name = f"{old_producer_name}_{consumer_suffix}"
+
+        logger.debug(
+            "Fused '%s' (%s) into '%s' (%s) -> %s (renamed to '%s')",
+            consumer.name,
+            consumer.type,
+            old_producer_name,
+            producer.type,
+            f"{producer.type}{consumer.type}",
+            new_producer_name,
         )
 
         producer.op = fused_op
-        producer.type = type(fused_op).__name__
+        producer.type = fused_op.name
+        producer.name = new_producer_name
 
+        legacy_names = {old_producer_name, consumer.name}
         consumer_outputs = set(getattr(consumer, "outputs", []))
-        consumer_outputs.add(consumer.name)
-        for ds_consumer in graph.nodes:
-            if ds_consumer.name == consumer.name:
+        legacy_names.update(consumer_outputs)
+
+        for ds_node in graph.nodes:
+            if ds_node.name == consumer.name or ds_node.name == old_producer_name:
                 continue
-            ds_consumer.inputs = [
-                producer.name if inp in consumer_outputs else inp
-                for inp in ds_consumer.inputs
+            ds_node.inputs = [
+                new_producer_name if inp in legacy_names else inp
+                for inp in ds_node.inputs
+            ]
+
+        if hasattr(graph, "outputs") and graph.outputs:
+            graph.outputs = [
+                new_producer_name if out in legacy_names else out
+                for out in graph.outputs
             ]
 
         nodes_to_remove.add(consumer.name)

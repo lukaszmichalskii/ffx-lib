@@ -311,6 +311,51 @@ def parse_global_avg_pool(
     )
 
 
+@OnnxOpsRegistry.register("ReduceMean")
+def parse_reduce_mean(
+    node: onnx.NodeProto, context: OnnxGraphContext
+) -> AdaptiveAvgPool2d:
+    """Lowers spatial ReduceMean (e.g. ResNet global pooling) into AdaptiveAvgPool2d."""
+    params = extract_attributes(node)
+    axes = params.get("axes", None)
+
+    # In newer ONNX opsets, 'axes' can be passed as the second input tensor
+    if axes is None and len(node.input) > 1:
+        axes_initializer = context.get_initializer_array(node.input[1])
+        if axes_initializer is not None:
+            axes = axes_initializer
+
+    in_shape = get_tensor_shape(node.input[0], context)
+
+    # Normalize axes to standard Python ints
+    if axes is not None:
+        # Convert numpy array / numpy ints to standard python ints and sort them
+        normalized_axes = sorted([int(a) for a in np.array(axes).flatten()])
+    else:
+        normalized_axes = []
+
+    # Check for spatial reduction:
+    # Spatial H, W axes for 4D NCHW tensors are [2, 3] (or [-2, -1], which normalizes/sorts to [2, 3] or [-2, -1])
+    is_spatial_reduction = (
+        normalized_axes in ([2, 3], [-2, -1])
+        or not normalized_axes  # Default in ONNX when axes is empty reduces all dimensions
+    )
+
+    if is_spatial_reduction:
+        return AdaptiveAvgPool2d(
+            in_channels=in_shape[1] if len(in_shape) > 1 else -1,
+            in_height=in_shape[2] if len(in_shape) > 2 else -1,
+            in_width=in_shape[3] if len(in_shape) > 3 else -1,
+            out_height=1,
+            out_width=1,
+        )
+
+    raise NotImplementedError(
+        f"ReduceMean node '{node.name}' with axes={axes} is not supported. "
+        f"Only global spatial pooling reduction ([2, 3] or [-2, -1]) is supported."
+    )
+
+
 # =============================================================================
 # Shape/Metadata Operations
 # =============================================================================

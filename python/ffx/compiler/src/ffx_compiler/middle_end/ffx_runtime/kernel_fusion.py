@@ -1,7 +1,9 @@
 from ffx_compiler.ir import (
     ActivationOp,
+    Add,
     BatchNorm2d,
     Conv2d,
+    FusedAddActivation,
     FusedBatchNorm2dActivation,
     FusedConv2dActivation,
     FusedLinearActivation,
@@ -10,6 +12,12 @@ from ffx_compiler.ir import (
 from ffx_compiler.middle_end.ffx_runtime.kernel_fusion_registry import (
     KernelFusionRegistry,
 )
+
+
+@KernelFusionRegistry.register(Add)
+def fuse_add(op: Add, act: ActivationOp) -> FusedAddActivation:
+    kwargs = {field: getattr(op, field) for field in op.__dataclass_fields__}
+    return FusedAddActivation(**kwargs, activation=act)
 
 
 @KernelFusionRegistry.register(Conv2d)

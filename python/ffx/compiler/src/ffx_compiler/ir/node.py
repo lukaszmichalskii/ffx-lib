@@ -11,9 +11,9 @@ class Node:
     inputs: List[str] = field(default_factory=list)
     shape: Tuple[int, ...] = None
     type: str = "unknown"
-    dtype: str = "float32"
+    dtype: str = "unknown"
     # O1
     folded_shape: Tuple[int, ...] = None
 
     def __post_init__(self):
-        self.type = type(self.op).__name__
+        self.type = self.op.name

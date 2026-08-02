@@ -48,6 +48,7 @@ def pack_data(
             "offset": offset,
             "size": data.size,
             "bytes_size": len(data_bytes),
+            "dtype": "double" if data.dtype == np.float64 else "float",
         }
     )
 

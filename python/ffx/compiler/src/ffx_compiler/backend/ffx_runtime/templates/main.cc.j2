@@ -13,18 +13,18 @@ namespace ffx_runtime {
 
     // host buffer allocations
 {% for inp in inputs %}
-    auto host_{{ inp.var }} = ffx::make_host_buffer<float[]>({{ inp.size_expr }});
+    auto host_{{ inp.var }} = ffx::make_host_buffer<{{ inp.dtype }}[]>({{ inp.size_expr }});
 {% endfor %}
 {% for out in outputs %}
-    auto host_{{ out.var }} = ffx::make_host_buffer<float[]>({{ out.size_expr }});
+    auto host_{{ out.var }} = ffx::make_host_buffer<{{ out.dtype }}[]>({{ out.size_expr }});
 {% endfor %}
 
     // device buffer allocations
 {% for inp in inputs %}
-    auto device_{{ inp.var }} = ffx::make_device_buffer<float[]>(queue, {{ inp.size_expr }});
+    auto device_{{ inp.var }} = ffx::make_device_buffer<{{ inp.dtype }}[]>(queue, {{ inp.size_expr }});
 {% endfor %}
 {% for out in outputs %}
-    auto device_{{ out.var }} = ffx::make_device_buffer<float[]>(queue, {{ out.size_expr }});
+    auto device_{{ out.var }} = ffx::make_device_buffer<{{ out.dtype }}[]>(queue, {{ out.size_expr }});
 {% endfor %}
 
     // initialize inputs and copy to device

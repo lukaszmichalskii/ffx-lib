@@ -26,7 +26,7 @@ namespace ffx_runtime {
       {
         const auto {{ meta.node }}_{{ param.param_name }}_view = alpaka::createView(
             ffx::host(),
-            reinterpret_cast<const float*>(_binary_model_data_start + {{ param.offset }}),
+            reinterpret_cast<const {{ param.dtype }}*>(_binary_model_data_start + {{ param.offset }}),
             static_cast<Extent>({{ param.size }}));
         alpaka::memcpy(
             queue,
@@ -73,10 +73,10 @@ namespace ffx_runtime {
 
     // params & intermediate buffers
 {% for node in nodes %}
-    ffx::device_buffer<Device, float[]> device_{{ node.var }}_output_;
+    ffx::device_buffer<Device, {{ node.dtype }}[]> device_{{ node.var }}_output_;
 {% if node.call_type == "parameterised" or node.call_type == "batch_norm" %}
-    ffx::device_buffer<Device, float[]> device_{{ node.var }}_weight_;
-    ffx::device_buffer<Device, float[]> device_{{ node.var }}_bias_;
+    ffx::device_buffer<Device, {{ node.dtype }}[]> device_{{ node.var }}_weight_;
+    ffx::device_buffer<Device, {{ node.dtype }}[]> device_{{ node.var }}_bias_;
 {% endif %}
 {% endfor %}
   };

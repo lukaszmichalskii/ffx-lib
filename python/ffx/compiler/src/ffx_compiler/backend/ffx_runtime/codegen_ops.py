@@ -11,6 +11,7 @@ from ffx_compiler.ir import (
     BatchNorm2d,
     Conv2d,
     Div,
+    FusedAddActivation,
     FusedBatchNorm2dActivation,
     FusedConv2dActivation,
     FusedLinearActivation,
@@ -249,6 +250,26 @@ def tanh(op: Any, batch_expr: str, size_expr: str) -> Dict[str, Any]:
 # =============================================================================
 # Fused Kernels
 # =============================================================================
+
+
+@FfxOpsRegistry.register(FusedAddActivation)
+def fused_add_activation(op: Any, batch_expr: str, size_expr: str) -> Dict[str, Any]:
+    act = op.activation
+    num_elements_expr = f"{size_expr}"
+
+    if isinstance(act, LeakyReLU):
+        nom, den = to_fraction(act.negative_slope)
+        kernel_type = f"ffx::nn::AddLeakyReLU<{num_elements_expr}, {nom}, {den}>"
+    else:
+        kernel_type = f"ffx::nn::Add{type(act).__name__}<{num_elements_expr}>"
+
+    return {
+        "kernel_type": kernel_type,
+        "call": "elementwise_binary",
+        "size_expr": num_elements_expr,
+        "weight_size": "0",
+        "bias_size": "0",
+    }
 
 
 @FfxOpsRegistry.register(FusedConv2dActivation)

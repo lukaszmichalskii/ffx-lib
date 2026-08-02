@@ -11,6 +11,7 @@ from ffx_compiler.ir.ops import (
     Conv2d,
     Div,
     Flatten,
+    FusedAddActivation,
     FusedBatchNorm2dActivation,
     FusedConv2dActivation,
     FusedLinearActivation,
@@ -76,4 +77,5 @@ __all__ = [
     "FusedConv2dActivation",
     "FusedLinearActivation",
     "FusedBatchNorm2dActivation",
+    "FusedAddActivation",
 ]
