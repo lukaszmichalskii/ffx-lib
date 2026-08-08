@@ -9,6 +9,10 @@ if(NOT DEFINED CMAKE_CUDA_STANDARD)
   set(CMAKE_CUDA_EXTENSIONS OFF)
 endif()
 
-foreach(SOURCE_FILE ${SOURCE_FILES})
+foreach(SOURCE_FILE ${PORTABLE_SOURCES})
+  ffx_add_test(${SOURCE_FILE} "cuda")
+endforeach()
+
+foreach(SOURCE_FILE ${CUDA_SOURCES})
   ffx_add_test(${SOURCE_FILE} "cuda")
 endforeach()

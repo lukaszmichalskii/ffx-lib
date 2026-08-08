@@ -12,6 +12,10 @@ endif()
 
 find_package(Boost REQUIRED COMPONENTS atomic)
 
+if("@FFX_SOA_ENABLED@")
+  find_dependency(Eigen3 REQUIRED NO_MODULE)
+endif()
+
 find_dependency(alpaka 2.1.1 QUIET)
 if(NOT alpaka_FOUND)
   include(FetchContent)

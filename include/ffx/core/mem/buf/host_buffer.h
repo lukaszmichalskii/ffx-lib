@@ -5,6 +5,7 @@
 #include "ffx/core/alpaka/platform.h"
 #include "ffx/core/detail/concepts.h"
 #include "ffx/core/mem/buf/traits.h"
+#include "ffx/core/mem/alloc/alloc_cached_buf.h"
 
 namespace ffx {
 
@@ -55,21 +56,34 @@ namespace ffx {
   // the memory is pinned according to the device associated to the queue
 
   template <concepts::scalar T, concepts::queue TQueue>
-  host_buffer<T> make_host_buffer() {
-    using TPlatform = alpaka::Platform<alpaka::Dev<TQueue>>;
-    return alpaka::allocMappedBuf<T, Idx>(host(), platform<TPlatform>(), Scalar{});
+  host_buffer<T> make_host_buffer(const TQueue& queue) {
+    if constexpr (allocator_policy<alpaka::Dev<TQueue>> == AllocatorPolicy::Caching) {
+      return mem::alloc_cached_buf<T, Idx>(host(), queue, Scalar{});
+    } else {
+      using TPlatform = alpaka::Platform<alpaka::Dev<TQueue>>;
+      return alpaka::allocMappedBuf<T, Idx>(host(), platform<TPlatform>(), Scalar{});
+    }
   }
 
   template <concepts::unbounded_array T, concepts::queue TQueue>
-  host_buffer<T> make_host_buffer(Extent extent) {
-    using TPlatform = alpaka::Platform<alpaka::Dev<TQueue>>;
-    return alpaka::allocMappedBuf<std::remove_extent_t<T>, Idx>(host(), platform<TPlatform>(), Vec1D{extent});
+  host_buffer<T> make_host_buffer(const TQueue& queue, Extent extent) {
+    if constexpr (allocator_policy<alpaka::Dev<TQueue>> == AllocatorPolicy::Caching) {
+      return mem::alloc_cached_buf<std::remove_extent_t<T>, Idx>(host(), queue, Vec1D{extent});
+    } else {
+      using TPlatform = alpaka::Platform<alpaka::Dev<TQueue>>;
+      return alpaka::allocMappedBuf<std::remove_extent_t<T>, Idx>(host(), platform<TPlatform>(), Vec1D{extent});
+    }
   }
 
   template <concepts::bounded_array T, concepts::queue TQueue>
-  host_buffer<T> make_host_buffer() {
-    using TPlatform = alpaka::Platform<alpaka::Dev<TQueue>>;
-    return alpaka::allocMappedBuf<std::remove_extent_t<T>, Idx>(host(), platform<TPlatform>(), Vec1D{std::extent_v<T>});
+  host_buffer<T> make_host_buffer(const TQueue& queue) {
+    if constexpr (allocator_policy<alpaka::Dev<TQueue>> == AllocatorPolicy::Caching) {
+      return mem::alloc_cached_buf<std::remove_extent_t<T>, Idx>(host(), queue, Vec1D{std::extent_v<T>});
+    } else {
+      using TPlatform = alpaka::Platform<alpaka::Dev<TQueue>>;
+      return alpaka::allocMappedBuf<std::remove_extent_t<T>, Idx>(
+          host(), platform<TPlatform>(), Vec1D{std::extent_v<T>});
+    }
   }
 
 }  // namespace ffx

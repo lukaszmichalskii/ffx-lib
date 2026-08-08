@@ -1,6 +1,22 @@
 #pragma once
 
-#include "ffx/core/ffx_core.h"
+#include "ffx/core/alpaka/config.h"
+#include "ffx/core/alpaka/devices.h"
+#include "ffx/core/alpaka/host.h"
+#include "ffx/core/alpaka/platform.h"
+#include "ffx/core/alpaka/work_division.h"
+#include "ffx/core/detail/concepts.h"
+#include "ffx/core/mem/alloc/alloc_cached_buf.h"
+#include "ffx/core/mem/alloc/alloc_policy.h"
+#include "ffx/core/mem/alloc/caching_alloc.h"
+#include "ffx/core/mem/alloc/device_caching_alloc.h"
+#include "ffx/core/mem/alloc/host_caching_alloc.h"
+#include "ffx/core/mem/buf/device_buffer.h"
+#include "ffx/core/mem/buf/host_buffer.h"
+#include "ffx/core/mem/buf/traits.h"
+#include "ffx/core/mem/view/device_view.h"
+#include "ffx/core/mem/view/host_view.h"
+#include "ffx/core/mem/view/traits.h"
 
 #ifdef FFX_ALGORITHM_ENABLED
 #include "ffx/algorithm/copy_if.h"
@@ -15,6 +31,7 @@
 
 #ifdef FFX_FRAMEWORK_ENABLED
 #include "ffx/framework/fw_core/environment.h"
+#include "ffx/framework/fw_core/demangle.h"
 #endif  // FFX_FRAMEWORK_ENABLED
 
 #ifdef FFX_NN_ENABLED
@@ -56,3 +73,18 @@
 #include "ffx/nn/sub.h"
 #include "ffx/nn/tanh.h"
 #endif  // FFX_NN_ENABLED
+
+#ifdef FFX_SOA_ENABLED
+#include "ffx/soa/portable/copy_to_device.h"
+#include "ffx/soa/portable/copy_to_host.h"
+#include "ffx/soa/portable/portable_collection.h"
+#include "ffx/soa/portable/portable_collection_common.h"
+#include "ffx/soa/portable/portable_device_collection.h"
+#include "ffx/soa/portable/portable_device_object.h"
+#include "ffx/soa/portable/portable_host_collection.h"
+#include "ffx/soa/portable/portable_host_object.h"
+#include "ffx/soa/portable/portable_object.h"
+#include "ffx/soa/struct_of_arrays.h"
+#include "ffx/soa/struct_of_arrays_blocks.h"
+#include "ffx/soa/struct_of_arrays_common.h"
+#endif  // FFX_SOA_ENABLED

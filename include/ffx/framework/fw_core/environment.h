@@ -3,7 +3,7 @@
 #include <print>
 #include <alpaka/alpaka.hpp>
 
-#include "ffx/core/ffx_core.h"
+#include "ffx/core/alpaka/config.h"
 
 namespace ffx::framework {
 

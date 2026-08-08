@@ -1,3 +1,3 @@
-foreach(SOURCE_FILE ${SOURCE_FILES})
+foreach(SOURCE_FILE ${PORTABLE_SOURCES})
   ffx_add_test(${SOURCE_FILE} "omp2")
 endforeach()

@@ -11,7 +11,54 @@ endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+file(
+  GLOB
+  SOURCE_FILES
+  CONFIGURE_DEPENDS
+  "${CMAKE_CURRENT_SOURCE_DIR}/*.cc"
+  "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/*.cxx"
+  "${CMAKE_CURRENT_SOURCE_DIR}/*.cu")
+
+if(NOT FFX_ALGORITHM_ENABLED)
+  list(FILTER SOURCE_FILES EXCLUDE REGEX ".*_algorithm_.*\\.cc$")
+endif()
+if(NOT FFX_FRAMEWORK_ENABLED)
+  list(FILTER SOURCE_FILES EXCLUDE REGEX ".*_framework_.*\\.cc$")
+endif()
+if(NOT FFX_NN_ENABLED)
+  list(FILTER SOURCE_FILES EXCLUDE REGEX ".*_nn_.*\\.cc$")
+endif()
+if(NOT FFX_SOA_ENABLED)
+  list(FILTER SOURCE_FILES EXCLUDE REGEX ".*_soa_.*\\.cc$")
+endif()
+
+set(HOST_ONLY_SOURCES "")
+set(CUDA_SOURCES "")
+set(HIP_SOURCES "")
+set(PORTABLE_SOURCES "")
+
+foreach(src ${SOURCE_FILES})
+  if(src MATCHES "\\.dev\\.cc$")
+    list(APPEND PORTABLE_SOURCES ${src})
+  elseif(src MATCHES "\\.cu$")
+    list(APPEND CUDA_SOURCES ${src})
+  elseif(src MATCHES "\\.hip\\.cc$")
+    list(APPEND HIP_SOURCES ${src})
+  else()
+    list(APPEND HOST_ONLY_SOURCES ${src})
+  endif()
+endforeach()
+
 if(FFX_NN_ENABLED)
+  set(ACTIVE_NN_SOURCES "")
+  foreach(src ${PORTABLE_SOURCES})
+    if(src MATCHES ".*_nn_.*")
+      list(APPEND ACTIVE_NN_SOURCES ${src})
+    endif()
+  endforeach()
+  list(REMOVE_DUPLICATES ACTIVE_NN_SOURCES)
+
   find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
   set(GLOBAL_BIN_DIR "${CMAKE_CURRENT_BINARY_DIR}/bin")
@@ -20,9 +67,10 @@ if(FFX_NN_ENABLED)
   set(PYTHON_DIR "${CMAKE_CURRENT_SOURCE_DIR}/python")
   set(PYTHON_TEST_RUNNER "${PYTHON_DIR}/test_runner.py")
 
-  file(GLOB NN_SOURCE_FILES CONFIGURE_DEPENDS "*_nn_*.cc")
-  foreach(SOURCE_FILE ${NN_SOURCE_FILES})
-    get_filename_component(TEST_NAME ${SOURCE_FILE} NAME_WE)
+  foreach(SOURCE_FILE ${ACTIVE_NN_SOURCES})
+    get_filename_component(FILE_NAME ${SOURCE_FILE} NAME)
+    string(REGEX REPLACE "(_nn_[a-zA-Z0-9_]+)\\..*" "\\1" TEST_NAME
+                         ${FILE_NAME})
 
     set(PYTHON_TEST "${PYTHON_DIR}/${TEST_NAME}.py")
     set(BIN_FILENAME "${TEST_NAME}.bin")
@@ -45,28 +93,28 @@ if(FFX_NN_ENABLED)
                 "${OBJ_FILE}"
         DEPENDS "${EXPECTED_BIN_FILE}"
         WORKING_DIRECTORY "${GLOBAL_BIN_DIR}"
-        COMMENT
-          "Baking single binary workspace blob ${BIN_FILENAME} into native object layout"
+        COMMENT "Baking binary blob ${BIN_FILENAME} into native object layout"
         VERBATIM)
 
-      add_library(${OBJ_LIB_NAME} STATIC "${OBJ_FILE}")
-      set_target_properties(
-        ${OBJ_LIB_NAME} PROPERTIES LINKER_LANGUAGE CXX POSITION_INDEPENDENT_CODE
-                                                       ON)
+      if(NOT TARGET ${OBJ_LIB_NAME})
+        add_library(${OBJ_LIB_NAME} STATIC "${OBJ_FILE}")
+        set_target_properties(
+          ${OBJ_LIB_NAME} PROPERTIES LINKER_LANGUAGE CXX
+                                     POSITION_INDEPENDENT_CODE ON)
+      endif()
     endif()
   endforeach()
 endif()
 
-file(GLOB SOURCE_FILES CONFIGURE_DEPENDS "*.cc")
-if(NOT FFX_ALGORITHM_ENABLED)
-  list(FILTER SOURCE_FILES EXCLUDE REGEX ".*_algorithm_.*\\.cc$")
-endif()
-if(NOT FFX_FRAMEWORK_ENABLED)
-  list(FILTER SOURCE_FILES EXCLUDE REGEX ".*_framework_.*\\.cc$")
-endif()
-if(NOT FFX_NN_ENABLED)
-  list(FILTER SOURCE_FILES EXCLUDE REGEX ".*_nn_.*\\.cc$")
-endif()
+# cpu host only sources
+foreach(HOST_ONLY_SOURCE ${HOST_ONLY_SOURCES})
+  get_filename_component(TEST_NAME ${HOST_ONLY_SOURCE} NAME_WE)
+  add_executable(${TEST_NAME} ${HOST_ONLY_SOURCE})
+  target_link_libraries(${TEST_NAME} PRIVATE ffx::ffx GTest::gtest_main)
+  target_compile_definitions(${TEST_NAME}
+                             PRIVATE ALPAKA_DEFAULT_HOST_MEMORY_ALIGNMENT=128)
+  add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+endforeach()
 
 add_subdirectory(serial)
 

@@ -25,6 +25,7 @@ jobs:
             clang-format \
             cmake-format \
             libboost-all-dev \
+            libeigen3-dev \
             libgtest-dev \
             libomp-dev \
             libtbb-dev \

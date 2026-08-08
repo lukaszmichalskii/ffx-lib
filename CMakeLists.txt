@@ -6,6 +6,12 @@ option(FFX_BUILD_CODEGEN_TESTING "Build the ffx codegen" OFF)
 option(FFX_ALGORITHM_ENABLED "Build the ffx::algorithm extension" ON)
 option(FFX_FRAMEWORK_ENABLED "Build the ffx::framework extension" ON)
 option(FFX_NN_ENABLED "Build the ffx::nn extension" ON)
+option(FFX_SOA_ENABLED "Build the ffx::soa extension" ON)
+
+if(FFX_SOA_ENABLED AND NOT FFX_FRAMEWORK_ENABLED)
+    message(STATUS "ffx::soa is ffx:framework dependent, auto enablement FFX_FRAMEWORK_ENABLED=ON")
+    set(FFX_FRAMEWORK_ENABLED ON)
+endif ()
 
 include(FetchContent)
 include(GNUInstallDirs)
@@ -74,6 +80,13 @@ endif()
 
 if(FFX_NN_ENABLED)
     target_compile_definitions(ffx INTERFACE FFX_NN_ENABLED)
+endif()
+
+if(FFX_SOA_ENABLED)
+    find_package(Eigen3 REQUIRED NO_MODULE)
+
+    target_compile_definitions(ffx INTERFACE FFX_SOA_ENABLED)
+    target_link_libraries(ffx INTERFACE Eigen3::Eigen)
 endif()
 
 if(FFX_BUILD_TESTING)
