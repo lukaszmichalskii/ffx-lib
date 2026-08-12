@@ -13,6 +13,8 @@ if(NOT TARGET ffx AND NOT TARGET ffx::ffx)
   find_package(ffx REQUIRED)
 endif()
 
+include(ffxAddExecutable)
+
 set(MODEL_DATA "${CMAKE_CURRENT_SOURCE_DIR}/model.data")
 set(MAIN_CC "${CMAKE_CURRENT_SOURCE_DIR}/main.cc")
 

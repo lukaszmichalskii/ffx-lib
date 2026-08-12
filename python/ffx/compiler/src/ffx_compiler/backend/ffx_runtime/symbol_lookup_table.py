@@ -37,19 +37,16 @@ class SymbolLookupTable:
         input_nodes = [n for n in graph.nodes if isinstance(n.op, Input)]
         input_nodes.sort(key=lambda n: n.op.index)
 
-        # 1. Register primary graph inputs
         for node in input_nodes:
-            cc_var = f"input_{node.op.index}"
+            cc_var = f"input_{node.op.index}" if len(input_nodes) > 1 else "input"
             lookup_table.ir_to_cpp_variable[node.name] = cc_var
             lookup_table.graph_input_cc_variables.add(cc_var)
             lookup_table.graph_input_names.add(node.name)
 
-        # 2. Register compute and zero-copy nodes
         for node in graph.nodes:
             if isinstance(node.op, IOOp):
                 continue
 
-            # Zero-copy alias resolution: store relationship to parent
             if isinstance(node.op, TransformOp):
                 parent_input = node.inputs[0] if node.inputs else ""
                 lookup_table.aliases[node.name] = parent_input
