@@ -4,8 +4,8 @@
 
 namespace ffx_alpaka {
 
-  using Idx = uint32_t;
-  using Extent = uint32_t;
+  using Idx = std::size_t;
+  using Extent = std::size_t;
   using Offsets = Extent;
 
   using Dim0D = alpaka::DimInt<0u>;

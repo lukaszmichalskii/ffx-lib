@@ -30,8 +30,22 @@
 #endif  // FFX_ALGORITHM_ENABLED
 
 #ifdef FFX_FRAMEWORK_ENABLED
-#include "ffx/framework/fw_core/environment.h"
-#include "ffx/framework/fw_core/demangle.h"
+#include "ffx/framework/concurrency/concurrent_lane.h"
+#include "ffx/framework/concurrency/concurrent_lane_dispatch.h"
+#include "ffx/framework/concurrency/concurrent_lane_memory.h"
+#include "ffx/framework/concurrency/hardware_concurrency.h"
+#include "ffx/framework/concurrency/ring_buffer.h"
+#include "ffx/framework/concurrency/thread_affinity.h"
+#include "ffx/framework/data_formats/header.h"
+#include "ffx/framework/fw_core/context.h"
+#include "ffx/framework/fw_core/data_stream.h"
+#include "ffx/framework/fw_core/module.h"
+#include "ffx/framework/fw_core/pipeline.h"
+#include "ffx/framework/fw_core/scheduler.h"
+#include "ffx/framework/utilities/demangle.h"
+#include "ffx/framework/utilities/environment_info.h"
+#include "ffx/framework/utilities/nvtx.h"
+#include "ffx/framework/utilities/token.h"
 #endif  // FFX_FRAMEWORK_ENABLED
 
 #ifdef FFX_NN_ENABLED

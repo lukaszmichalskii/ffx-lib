@@ -4,6 +4,7 @@
 #include <alpaka/alpaka.hpp>
 
 #include "ffx/core/alpaka/config.h"
+#include "ffx/core/detail/concepts.h"
 
 namespace ffx::framework {
 

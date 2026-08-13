@@ -1,12 +1,14 @@
 cmake_minimum_required(VERSION 3.25.2)
 project(ffx VERSION 1.0.0 LANGUAGES CXX)
 
-option(FFX_BUILD_TESTING "Build the ffx unit tests" ON)
+option(FFX_BUILD_TESTING "Build the ffx unit tests" OFF)
 option(FFX_BUILD_CODEGEN_TESTING "Build the ffx codegen" OFF)
-option(FFX_ALGORITHM_ENABLED "Build the ffx::algorithm extension" ON)
+option(FFX_ALGORITHM_ENABLED "Build the ffx::algorithm extension" OFF)
 option(FFX_FRAMEWORK_ENABLED "Build the ffx::framework extension" ON)
 option(FFX_NN_ENABLED "Build the ffx::nn extension" ON)
-option(FFX_SOA_ENABLED "Build the ffx::soa extension" ON)
+option(FFX_SOA_ENABLED "Build the ffx::soa extension" OFF)
+
+option(FFX_CACHING_ALLOC_ENABLED "Enable caching allocations" OFF)
 
 if(FFX_SOA_ENABLED AND NOT FFX_FRAMEWORK_ENABLED)
     message(STATUS "ffx::soa is ffx:framework dependent, auto enablement FFX_FRAMEWORK_ENABLED=ON")
@@ -75,7 +77,10 @@ if(FFX_ALGORITHM_ENABLED)
 endif()
 
 if(FFX_FRAMEWORK_ENABLED)
+    find_package(TBB REQUIRED)
+
     target_compile_definitions(ffx INTERFACE FFX_FRAMEWORK_ENABLED)
+    target_link_libraries(ffx INTERFACE TBB::tbb)
 endif()
 
 if(FFX_NN_ENABLED)
@@ -89,6 +94,10 @@ if(FFX_SOA_ENABLED)
     target_link_libraries(ffx INTERFACE Eigen3::Eigen)
 endif()
 
+if(FFX_CACHING_ALLOC_ENABLED)
+    target_compile_definitions(ffx INTERFACE FFX_CACHING_ALLOC_ENABLED)
+endif ()
+
 if(FFX_BUILD_TESTING)
     enable_testing()
     add_subdirectory(test)
@@ -97,6 +106,8 @@ endif()
 if(FFX_BUILD_CODEGEN_TESTING)
     add_subdirectory(codegen_test)
 endif()
+
+add_subdirectory(samples)
 
 include(CMakePackageConfigHelpers)
 

@@ -48,7 +48,7 @@ namespace ffx::mem {
     // initialise all allocators, one per device
     static auto allocators = detail::allocate_device_allocators<TDevice, TQueue>();
 
-    size_t const index = get_device_index(device);
+    size_t const index = alpaka::getNativeHandle(device);
     std::vector<TDevice> devs = alpaka::getDevs(alpaka::Platform<TDevice>{});
     assert(index < ffx::devices<alpaka::Platform<TDevice>>().size());
 

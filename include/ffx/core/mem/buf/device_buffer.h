@@ -36,7 +36,9 @@ namespace ffx {
 
   template <concepts::scalar T, concepts::queue TQueue>
   device_buffer<alpaka::Dev<TQueue>, T> make_device_buffer(TQueue const& queue) {
-    if constexpr (allocator_policy<alpaka::Dev<TQueue>> == AllocatorPolicy::Asynchronous) {
+    if constexpr (allocator_policy<alpaka::Dev<TQueue>> == AllocatorPolicy::Caching) {
+      return mem::alloc_cached_buf<T, Idx>(alpaka::getDev(queue), queue, Scalar{});
+    } else if constexpr (allocator_policy<alpaka::Dev<TQueue>> == AllocatorPolicy::Asynchronous) {
       return alpaka::allocAsyncBuf<T, Idx>(queue, Scalar{});
     } else if constexpr (allocator_policy<alpaka::Dev<TQueue>> == AllocatorPolicy::Synchronous) {
       return alpaka::allocBuf<T, Idx>(alpaka::getDev(queue), Scalar{});
@@ -47,7 +49,9 @@ namespace ffx {
 
   template <concepts::unbounded_array T, concepts::queue TQueue>
   device_buffer<alpaka::Dev<TQueue>, T> make_device_buffer(TQueue const& queue, Extent extent) {
-    if constexpr (allocator_policy<alpaka::Dev<TQueue>> == AllocatorPolicy::Asynchronous) {
+    if constexpr (allocator_policy<alpaka::Dev<TQueue>> == AllocatorPolicy::Caching) {
+      return mem::alloc_cached_buf<std::remove_extent_t<T>, Idx>(alpaka::getDev(queue), queue, Vec1D{extent});
+    } else if constexpr (allocator_policy<alpaka::Dev<TQueue>> == AllocatorPolicy::Asynchronous) {
       return alpaka::allocAsyncBuf<std::remove_extent_t<T>, Idx>(queue, Vec1D{extent});
     } else if constexpr (allocator_policy<alpaka::Dev<TQueue>> == AllocatorPolicy::Synchronous) {
       return alpaka::allocBuf<std::remove_extent_t<T>, Idx>(alpaka::getDev(queue), Vec1D{extent});
@@ -58,7 +62,9 @@ namespace ffx {
 
   template <concepts::bounded_array T, concepts::queue TQueue>
   device_buffer<alpaka::Dev<TQueue>, T> make_device_buffer(TQueue const& queue) {
-    if constexpr (allocator_policy<alpaka::Dev<TQueue>> == AllocatorPolicy::Asynchronous) {
+    if constexpr (allocator_policy<alpaka::Dev<TQueue>> == AllocatorPolicy::Caching) {
+      return mem::alloc_cached_buf<std::remove_extent_t<T>, Idx>(alpaka::getDev(queue), queue, Vec1D{std::extent_v<T>});
+    } else if constexpr (allocator_policy<alpaka::Dev<TQueue>> == AllocatorPolicy::Asynchronous) {
       return alpaka::allocAsyncBuf<std::remove_extent_t<T>, Idx>(queue, Vec1D{std::extent_v<T>});
     } else if constexpr (allocator_policy<alpaka::Dev<TQueue>> == AllocatorPolicy::Synchronous) {
       return alpaka::allocBuf<std::remove_extent_t<T>, Idx>(alpaka::getDev(queue), Vec1D{std::extent_v<T>});

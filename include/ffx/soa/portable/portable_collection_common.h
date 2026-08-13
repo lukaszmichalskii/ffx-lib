@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <type_traits>
 
-#include "ffx/framework/fw_core/demangle.h"
+#include "ffx/framework/utilities/demangle.h"
 
 namespace ffx::soa::detail {
 

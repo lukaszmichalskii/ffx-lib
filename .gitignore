@@ -26,3 +26,7 @@ venv
 
 # notebooks
 *.ipynb_checkpoints
+
+# samples
+*.data
+*.raw
