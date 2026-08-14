@@ -19,9 +19,11 @@ namespace ffx_runtime::mnist {
 
     void dispatch(const ffx::framework::Context<Queue>& context) const override {
 #ifdef DEBUG
-      // std::println("[Inference] Batch {}, queue {}", context.meta().batch_id, static_cast<void*>(alpaka::getNativeHandle(context.queue())));
-      nvtx_tools::ScopedRange range("Inference", nvtx_tools::colors::Red);
+      std::println("[Inference] Batch {}, queue {}",
+                   context.meta().batch_id,
+                   static_cast<void*>(alpaka::getNativeHandle(context.queue())));
 #endif
+      nvtx_tools::ScopedRange range("Inference", nvtx_tools::colors::Red);
       const auto input_data = context.get(input_token_);
       const auto size = context.meta().batch_size * kNumberOfClasses;
       auto output_data = ffx::make_device_buffer<float[]>(context.queue(), size);

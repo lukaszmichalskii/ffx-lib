@@ -31,9 +31,11 @@ namespace ffx_runtime::mnist {
 
     void dispatch(const ffx::framework::Context<Queue>& context) const override {
 #ifdef DEBUG
-      // std::println("[Preprocessing] Batch {}, queue {}", context.meta().batch_id, static_cast<void*>(alpaka::getNativeHandle(context.queue())));
-      nvtx_tools::ScopedRange range("Preprocessing", nvtx_tools::colors::Blue);
+      std::println("[Preprocessing] Batch {}, queue {}",
+                   context.meta().batch_id,
+                   static_cast<void*>(alpaka::getNativeHandle(context.queue())));
 #endif
+      nvtx_tools::ScopedRange range("Preprocessing", nvtx_tools::colors::Blue);
       const auto& input_data = context.get(input_token_);
       const auto size = context.meta().batch_size * input_data->data()->pixels.size();
       auto output_data = ffx::make_device_buffer<float[]>(context.queue(), size);

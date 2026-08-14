@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <type_traits>
 
-#include "ffx/framework/utilities/demangle.h"
+#include "ffx/core/detail/concepts.h"
 
 namespace ffx::soa::detail {
 
@@ -38,7 +38,7 @@ namespace ffx::soa::detail {
         throw std::runtime_error(
             std::format("Invalid input for PortableCollection size: negative value {} (source type: {})",
                         input,
-                        ffw::framework::type_demangle(typeid(Int).name())));
+                        alpaka::core::demangled<Int>));
       }
     }
 
@@ -47,7 +47,7 @@ namespace ffx::soa::detail {
         throw std::runtime_error(
             std::format("Invalid input for PortableCollection size: value {} exceeds std::size_t max (source type: {})",
                         input,
-                        ffw::framework::type_demangle(typeid(Int).name())));
+                        alpaka::core::demangled<Int>));
       }
     }
 

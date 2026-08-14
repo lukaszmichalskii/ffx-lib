@@ -2,12 +2,12 @@
 
 namespace ffx_mnist::config {
 
-  constexpr auto kBatchSize = 60zu;
+  constexpr auto kBatchSize = 64zu;
   constexpr auto kNumberOfClasses = 10zu;
   constexpr auto kThreadsPerBlock = 64zu;
 
-  constexpr auto kNumberOfThreads = 16zu;
-  constexpr auto kNumberOfQueues = kNumberOfThreads;
+  constexpr auto kNumberOfThreads = 8zu;
+  constexpr auto kConcurrentLaneCapacity = 2zu;
   constexpr std::string_view kFilepath = "data.raw";
 
   struct mnist_sample_t {

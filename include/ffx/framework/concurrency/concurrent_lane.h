@@ -9,7 +9,7 @@
 
 namespace ffx::framework::concurrency {
 
-  template <concepts::queue TQueue, std::size_t N = 8>
+  template <concepts::queue TQueue, std::size_t TLaneCapacity>
   class ConcurrentLane {
   public:
     using Device = alpaka::Dev<TQueue>;
@@ -95,7 +95,7 @@ namespace ffx::framework::concurrency {
     const std::size_t lane_id_;
     ConcurrentLaneMemory shared_memory_;
     Scheduler<TQueue> scheduler_;
-    ConcurrentLaneGuard<TQueue, N> lane_guard_;
+    ConcurrentLaneGuard<TQueue, TLaneCapacity> lane_guard_;
     ring_buffer<Task, 2048> task_queue_;
     alignas(64) std::atomic<std::size_t> active_tasks_{0};
     std::jthread worker_;

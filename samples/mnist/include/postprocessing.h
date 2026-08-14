@@ -40,9 +40,11 @@ namespace ffx_runtime::mnist {
 
     void dispatch(const ffx::framework::Context<Queue>& context) const override {
 #ifdef DEBUG
-      // std::println("[Postprocessing] Batch {}, queue {}", context.meta().batch_id, static_cast<void*>(alpaka::getNativeHandle(context.queue())));
-      nvtx_tools::ScopedRange range("Postprocessing", nvtx_tools::colors::Green);
+      std::println("[Postprocessing] Batch {}, queue {}",
+                   context.meta().batch_id,
+                   static_cast<void*>(alpaka::getNativeHandle(context.queue())));
 #endif
+      nvtx_tools::ScopedRange range("Postprocessing", nvtx_tools::colors::Green);
       const auto& input_data = context.get(input_token_);
       const auto size = context.meta().batch_size;
       auto output_data = ffx::make_device_buffer<std::size_t[]>(context.queue(), size);

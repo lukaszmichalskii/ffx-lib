@@ -28,11 +28,11 @@ namespace ffx::framework {
     template <typename Provider>
     struct provider_data_type {
       using get_return_t = decltype(std::declval<Provider&>().get());
-      using type = typename extract_batch_element_type<std::decay_t<get_return_t>>::type;
+      using type = extract_batch_element_type<std::decay_t<get_return_t>>::type;
     };
 
     template <typename Provider>
-    using provider_data_type_t = typename provider_data_type<std::decay_t<Provider>>::type;
+    using provider_data_type_t = provider_data_type<std::decay_t<Provider>>::type;
 
   }  // namespace detail
 
@@ -44,18 +44,19 @@ namespace ffx::framework {
   template <typename T>
   concept direct_mem_access_compatible = std::is_trivially_copyable_v<T> && std::is_standard_layout_v<T>;
 
-  template <concepts::queue TQueue>
+  template <concepts::queue TQueue, std::size_t TLaneCapacity = 8>
   class Pipeline {
   public:
     using Device = alpaka::Dev<TQueue>;
 
     explicit Pipeline(const Device& device,
                       const std::size_t number_of_concurrent_lanes = std::thread::hardware_concurrency())
-        : number_of_concurrent_lanes_(concurrency::get_number_of_threads(number_of_concurrent_lanes)) {
+        : number_of_concurrent_lanes_(std::max(1zu, number_of_concurrent_lanes)) {
       concurrency_pool_.reserve(number_of_concurrent_lanes_);
       for (auto index = 0zu; index < number_of_concurrent_lanes_; ++index)
-        concurrency_pool_.push_back(std::make_unique<concurrency::ConcurrentLane<TQueue>>(device, index));
-      dispatcher_ = std::make_unique<concurrency::ConcurrentLaneDispatch<TQueue>>(concurrency_pool_);
+        concurrency_pool_.push_back(
+            std::make_unique<concurrency::ConcurrentLane<TQueue, TLaneCapacity>>(device, index));
+      dispatcher_ = std::make_unique<concurrency::ConcurrentLaneDispatch<TQueue, TLaneCapacity>>(concurrency_pool_);
     }
 
     template <typename TModule, typename... Args>
@@ -128,11 +129,11 @@ namespace ffx::framework {
     }
 
   private:
-    using concurrent_lanes_pool_t = std::vector<std::unique_ptr<concurrency::ConcurrentLane<TQueue>>>;
+    using concurrent_lanes_pool_t = std::vector<std::unique_ptr<concurrency::ConcurrentLane<TQueue, TLaneCapacity>>>;
 
     const std::size_t number_of_concurrent_lanes_;
     concurrent_lanes_pool_t concurrency_pool_;
-    std::unique_ptr<concurrency::ConcurrentLaneDispatch<TQueue>> dispatcher_;
+    std::unique_ptr<concurrency::ConcurrentLaneDispatch<TQueue, TLaneCapacity>> dispatcher_;
 
     bool is_pipeline_ready_{false};
   };

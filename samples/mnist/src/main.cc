@@ -13,8 +13,9 @@ namespace ffx_runtime {
   using namespace mnist::config;
 
   int main() {
+    nvtx_tools::ScopedRange range("MNIST", nvtx_tools::colors::White);
     const auto& device = ffx::devices<Platform>()[0];
-    auto pipeline = ffx::framework::Pipeline<Queue>(device, kNumberOfThreads);
+    auto pipeline = ffx::framework::Pipeline<Queue, kConcurrentLaneCapacity>(device, kNumberOfThreads);
 
     pipeline.add_module<mnist::Preprocessing>();
     pipeline.add_module<mnist::Inference>();
@@ -24,6 +25,7 @@ namespace ffx_runtime {
 #endif  // DEBUG
 
     auto stream = ffx::framework::DataStream<mnist_sample_t>(kFilepath);
+    nvtx_tools::ScopedRange range1("Dispatch", nvtx_tools::colors::White);
     pipeline.dispatch(stream);
 
     return 0;

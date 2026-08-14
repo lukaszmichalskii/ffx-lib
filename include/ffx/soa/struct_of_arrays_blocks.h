@@ -1,5 +1,4 @@
-#ifndef DataFormats_SoATemplate_interface_SoABlocks_h
-#define DataFormats_SoATemplate_interface_SoABlocks_h
+#pragma once
 
 /*
  * SoA Blocks: collection of SoA layouts (blocks) that can be accessed in a structured way.
@@ -603,5 +602,3 @@
       _ITERATE_ON_ALL(_DECLARE_MEMBERS_BLOCKS, ~, __VA_ARGS__)                                                         \
   }; \
   // clang-format on
-
-#endif  // DataFormats_SoATemplate_interface_SoABlocks_h
