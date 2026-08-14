@@ -115,7 +115,7 @@ namespace ffx::framework {
         concurrent_lane->wait_tasks();
       // sync queues
       for (auto& concurrent_lane : concurrency_pool_)
-        concurrent_lane->wait();
+        concurrent_lane->sync();
       // clear shared memory
       for (auto& concurrent_lane : concurrency_pool_)
         concurrent_lane->shared_memory().clear();

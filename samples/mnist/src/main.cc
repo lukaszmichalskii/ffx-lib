@@ -14,8 +14,6 @@ namespace ffx_runtime {
 
   int main() {
     const auto& device = ffx::devices<Platform>()[0];
-    // num_lanes = kNumberOfThreads enforces the 1:1 Thread↔Queue lane binding.
-    // (kNumberOfQueues == kNumberOfThreads per mnist_config.h, so semantics are unchanged.)
     auto pipeline = ffx::framework::Pipeline<Queue>(device, kNumberOfThreads);
 
     pipeline.add_module<mnist::Preprocessing>();
@@ -24,8 +22,6 @@ namespace ffx_runtime {
 #ifdef DEBUG
     pipeline.add_module<mnist::Validator>();
 #endif  // DEBUG
-
-    pipeline.build();
 
     auto stream = ffx::framework::DataStream<mnist_sample_t>(kFilepath);
     pipeline.dispatch(stream);

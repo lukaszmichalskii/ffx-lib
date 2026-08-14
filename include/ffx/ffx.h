@@ -34,6 +34,7 @@
 #include "ffx/framework/concurrency/concurrent_lane_dispatch.h"
 #include "ffx/framework/concurrency/concurrent_lane_memory.h"
 #include "ffx/framework/concurrency/hardware_concurrency.h"
+#include "ffx/framework/concurrency/concurrent_lane_guard.h"
 #include "ffx/framework/concurrency/ring_buffer.h"
 #include "ffx/framework/concurrency/thread_affinity.h"
 #include "ffx/framework/data_formats/header.h"
